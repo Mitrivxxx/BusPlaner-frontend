@@ -1,13 +1,16 @@
 <template>
   <div class="container">
     <div class="button-container">
+
       <button>Dodaj pracownika</button>
       <button @click="activeComponent='AddBus'">Dodaj autobus</button>
       <button @click="activeComponent='AdminBusTimetable'">Dodaj przystanek</button>
       <button @click="activeComponent='AddLines'">Dodaj linie</button>
     </div>
+    <div class ="component-container">
       <component :is="currentComponent" />
     </div>
+</div>
   </template>
 <!---------------------------->
 <script setup>
@@ -28,10 +31,21 @@ const currentComponent = computed(() => {
 <!---------------------------->
   <style scoped>
   .container{
-    position: relative; /* Tworzymy kontekst do pozycjonowania absolutnego */
+    position: flex; /* Tworzymy kontekst do pozycjonowania absolutnego */
     padding: 20px;
   }
+  .component-container {  
+    position: absolute; /* Pozwala na pozycjonowanie poza kontenerem */
+    top: -14%; /* Ustawiamy odległość od góry */
+    left: 55%;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
   .button-container {
+    background-color: var(--moj_srodek);
     display: flex;
     gap: 20px;
     justify-content: center;

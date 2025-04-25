@@ -19,6 +19,7 @@ onMounted(() => {
     --moj_zielony_hover: #45a049;
     --moj_szary: #333;
     --moj_tlo: #222020;
+    --moj_srodek: rgb(59, 59, 59);
   }
 
   button {

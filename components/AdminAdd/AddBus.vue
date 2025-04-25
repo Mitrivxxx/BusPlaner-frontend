@@ -1,5 +1,7 @@
 <template>
+
     <form @submit.prevent="submitForm" class="p-4 max-w-md mx-auto space-y-4">
+      <div class="container">
         <h1>Dodaj autobus</h1>
       <div>
         <label for="number" class="block font-semibold">Numer rejestracyjny:</label><br>
@@ -44,7 +46,9 @@
       >
         Dodaj autobus
       </button>
+    </div>
     </form>
+
   </template>
   
   <script setup>
@@ -63,42 +67,42 @@
   </script>
   
   <style scoped>
+  .container{
+    background-color: var(--moj_srodek); /* Kolor tła kontenera */
+    border-radius: 15px; /* Zaokrąglone rogi */
+    ;
+  }
 form {
-  position: absolute;                  /* Pozwala na pozycjonowanie poza kontenerem */
-  top: 100px;                           /* Zmiana wartości pozwala na dostosowanie odległości od góry */
-  left: 180%;                            /* Wyrównanie komponentu w poziomie */
+                 /* Pozwala na pozycjonowanie poza kontenerem */                      /* Wyrównanie komponentu w poziomie */
   transform: translateX(-50%);          /* Dokładne wyśrodkowanie */
   background-color: var(--moj_szary);   /* Kolor tła formularza */
   padding: 20px;                        /* Wewnętrzne marginesy */
   border-radius: 15px;                  /* Zaokrąglone rogi formularza */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Wyraźniejszy cień */
-  
-  margin-top: -240px;                   /* Ustawienie marginesu górnego */
   height: auto;                         /* Zmieniamy wysokość, aby dopasować się do zawartości */
   width: 90%;                           /* Szerokość formularza - dostosowana do rozmiaru ekranu */
-  
   display: flex;                        /* Używamy flexboxa do ułożenia elementów */
   flex-direction: column;               /* Układ pionowy */
-  gap: 15px;                            /* Przerwa między elementami formularza */
+                           /* Przerwa między elementami formularza */
 }
 
 input{
   width: 80%;                          /* Szerokość pól formularza i przycisków */
-  padding: 10px;                        /* Wewnętrzne marginesy */
+  padding: 10px;    
+  margin: 10px;                    /* Wewnętrzne marginesy */
   border-radius: 8px;                   /* Zaokrąglone rogi */
   border: 1px solid #ccc;               /* Lekka ramka */
   font-size: 16px;                      /* Rozmiar czcionki */
 }
 select {
-    width: 85%;                          /* Szerokość pól formularza i przycisków */
+    width: 83%;                          /* Szerokość pól formularza i przycisków */
   padding: 10px;                        /* Wewnętrzne marginesy */
   border-radius: 8px;                   /* Zaokrąglone rogi */
   border: 1px solid #ccc;               /* Lekka ramka */
   font-size: 16px;                      /* Rozmiar czcionki */
 }
 button{
-width: 85%;    
-margin-left: 8%;                      /* Szerokość pól formularza i przycisków */
+width: 83%;                         /* Szerokość pól formularza i przycisków */
   padding: 10px;                        /* Wewnętrzne marginesy */
   border-radius: 8px;                   /* Zaokrąglone rogi */
   border: 1px solid #ccc;               /* Lekka ramka */
