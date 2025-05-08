@@ -9,7 +9,7 @@
           <p class="text">Admin panel</p>
           <!-- Przyciski wyświetlają się tylko jeśli nie został załadowany komponent -->
           <button v-if="!isComponentLoaded" @click="loadComponent(AdminDodaj)">Dodaj</button>
-          <button v-if="!isComponentLoaded" @click="loadComponent(AsideMain)">Wygeneruj rozkład jazdy</button>
+          <button v-if="!isComponentLoaded" @click="loadComponent(GenerateTimetable)">Wygeneruj rozkład jazdy</button>
   
           <!-- Dynamiczne ładowanie komponentów -->
           <component :is="currentComponent" v-if="isComponentLoaded" />
@@ -26,6 +26,7 @@
   import { ref } from 'vue'
   import Header from '@/components/Header.vue';
   import AdminDodaj from '@/components/AdminAdd.vue';
+  import GenerateTimetable from '@/components/AdminAdd/generateatimetable.vue';
 
   // Referencja do aktualnie wyświetlanego komponentu
   const currentComponent = ref(null)
@@ -35,6 +36,7 @@
   
   // Funkcja ładowania komponentu
   const loadComponent = (component) => {
+        console.log('Ładowanie komponentu:', component)
     currentComponent.value = component
     isComponentLoaded.value = true
   }
