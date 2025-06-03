@@ -5,11 +5,23 @@
         <h1>FORMULARZ GENEROWANIA ROZKŁADU JAZDY</h1>
         <!-- 1. Wybór linii -->
         <div class="form-section">
-          <h2>1. Wybór linii</h2>
-          <label>
-            Numer linii:
-            <input type="text" placeholder="Wpisz numer linii">
-          </label>
+ <div v-if="loading">Ładowanie...</div>
+    <div v-if="error" class="error">{{ error }}</div>
+    
+    <select 
+      v-model="selectedLineId"
+      @change="handleSelectChange"
+      :disabled="loading || error"
+    >
+      <option value="" disabled>Wybierz linię</option>
+      <option
+        v-for="line in sortedLines"
+        :key="line.id"
+        :value="line.id"
+      >
+        Linia {{ line.numer }} - {{ line.kierunek }}
+      </option>
+    </select>
         </div>
   
         <!-- 2. Dane rozkładu -->
@@ -26,48 +38,86 @@
             </label>
           </div>
         </div>
-  
-        <!-- 3. Godziny odjazdów -->
+
         <div class="form-section">
-            <h2>3. Godziny odjazdów</h2>
-    <table class="departures-table">
-      <thead>
-        <tr>
-          <th>Przystanek początkowy</th>
-          <th>Godzina</th>
-          <th>Przystanek końcowy</th>
-          <th>Akcje</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(departure, index) in departures" :key="index">
-          <td><input v-model="departure.startStop" type="text" placeholder="Nazwa przystanku"></td>
-          <td><input v-model="departure.time" type="text" placeholder="HH:MM"></td>
-          <td><input v-model="departure.endStop" type="text" placeholder="Nazwa przystanku"></td>
-          <td><button @click="removeDeparture(index)" type="button">Usuń</button></td>
-        </tr>
-      </tbody>
-    </table>
-    <button @click="addDeparture" type="button">Dodaj kolejny odjazd</button>
-  </div>
+           <label>Wybierz trase:</label>
+    <select
+      v-model="selectedTrasyId"
+      @change="handleSelectChange"
+      :disabled="loading || error"
+    >
+      <option value="" disabled>Wybierz trase...</option>
+      <option
+        v-for="trasy in sortedTrasy"
+        :key="trasy.id"
+        :value="trasy.id"
+      >
+        {{ trasy.nazwa }}
+      </option>
+    </select>
+
+    <div v-if="loading">Ładowanie listy tras...</div>
+    <div v-if="error" class="error">{{ error }}</div>
+  
+
+        </div>
   
         <!-- 4. Przypisanie brygady -->
         <div class="form-section">
           <h2>4. Przypisanie brygady</h2>
-          <label>
-            Numer brygady:
-            <input type="text" placeholder="Wpisz numer brygady">
-          </label>
+ <label>Wybierz brygadę:</label>
+    <select
+      v-model="selectedBrygadaId"
+      @change="handleSelectChange"
+      :disabled="loading || error"
+    >
+      <option value="" disabled>Wybierz brygadę...</option>
+      <option
+        v-for="brygada in sortedBrygady"
+        :key="brygada.id"
+        :value="brygada.id"
+      >
+        {{ brygada.nazwa }}
+      </option>
+    </select>
+
+    <div v-if="loading">Ładowanie listy brygad...</div>
+    <div v-if="error" class="error">{{ error }}</div>
           
-          <label>
-            Autobus (rejestracja/model):
-            <input type="text" placeholder="Wpisz dane autobusu">
-          </label>
+
+
+          <label>Wybierz Autobus:</label>
+<select
+  v-model="selectedBusId"
+  :disabled="busLoading || busError"
+>
+  <option value="" disabled>Wybierz autobus...</option>
+  <option
+    v-for="bus in sortedBuses"
+    :key="bus.id"
+    :value="bus.id"
+  >
+    {{ bus.marka }} {{ bus.model }} ({{ bus.rejestracja }})
+  </option>
+</select>
+
+<div v-if="busLoading">Ładowanie listy autobusów...</div>
+<div v-if="busError" class="error">{{ busError }}</div>
           
-          <label>
-            Kierowca:
-            <input type="text" placeholder="Wpisz imię i nazwisko kierowcy">
-          </label>
+    <label>Wybierz kierowce</label>
+    <select 
+      v-model="selectedKierowcaId"
+      @focus="fetchKierowcy"
+    >
+      <option value="" disabled>Wybierz kierowcę</option>
+      <option 
+        v-for="kierowca in sortedKierowcy"
+        :key="kierowca.id"
+        :value="kierowca.id"
+      >
+        {{ kierowca.nazwisko }} {{ kierowca.imie }} ({{ kierowca.pesel }})
+      </option>
+    </select>
         </div>
   
         <button type="submit">Zapisz rozkład jazdy</button>
@@ -75,23 +125,110 @@
     </div>
   </template>
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, computed, initCustomFormatter } from 'vue'
+import { useLines } from './script/useScript'
+import { usePrzystanki } from './script/usePrzystanki'
+import { useBrygady } from './script/useBrygady'
+import { useBus } from './script/useBus'
+import { useKierowcy } from './script/useKierowcy'
+import { useTrasy } from './script/useTrasy'
+
+const emit = defineEmits(['select'])
+
+const {
+  loading: linesLoading,
+  error: linesError,
+  sortedLines,
+  selectedLineId,
+  fetchLines
+} = useLines()
+const { 
+  sortedKierowcy, 
+  loading: kierowcyLoading, 
+  error: kierowcyError, 
+  fetchKierowcy 
+} = useKierowcy()
+const selectedKierowcaId = ref(null)
+const {
+  przystanki: sortedPrzystanki,
+  loading: przystankiLoading,
+  error: przystankiError,
+  fetchPrzystanki
+} = usePrzystanki()
+
+const {
+  sortedBrygady,
+  loading: brygadyLoading,
+  error: brygadyError,
+  fetchBrygady
+} = useBrygady()
+const { 
+  sortedTrasy, 
+  loading: trasyLoading, 
+  error: trasyError, 
+  fetchTrasy 
+} = useTrasy()
+const {
+  buses,
+  sortedBuses,
+  loading: busLoading,
+  error: busError,
+  fetchBus
+} = useBus()
 
 const departures = ref([
-  { startStop: '', time: '', endStop: '' },
-  { startStop: '', time: '', endStop: '' },
-  { startStop: '', time: '', endStop: '' }
-]);
+  { startStopId: null, time: '', endStopId: null },
+  { startStopId: null, time: '', endStopId: null },
+  { startStopId: null, time: '', endStopId: null }
+])
 
 const addDeparture = () => {
-  departures.value.push({ startStop: '', time: '', endStop: '' });
-};
+  departures.value.push({
+    startStopId: null,
+    endStopId: null,
+    time: ''
+  })
+}
 
 const removeDeparture = (index) => {
-  if (departures.value.length > 1) {
-    departures.value.splice(index, 1);
-  }
-};
+  departures.value.splice(index, 1)
+}
+
+const selectedBrygadaId = ref(null)
+
+const handleSelectChange = () => {
+  const selected = sortedBrygady.value.find(
+    b => b.id === selectedBrygadaId.value
+  )
+  emit('select', selected)
+}
+
+onMounted(async () => {
+  await fetchLines()
+  await fetchPrzystanki()
+  await fetchBrygady()
+  await fetchBus()
+  await fetchKierowcy()
+  await fetchTrasy()
+})
+
+const loading = computed(() =>
+  linesLoading.value ||
+  przystankiLoading.value ||
+  brygadyLoading.value ||
+  busLoading.value ||
+  kierowcyLoading.value ||
+  trasyLoading.value
+)
+
+const error = computed(() =>
+  linesError.value ||
+  przystankiError.value ||
+  brygadyError.value ||
+  busError.value ||
+  kierowcyError.value ||
+  trasyError.value
+)
 </script>
   <style scoped>
 .container {

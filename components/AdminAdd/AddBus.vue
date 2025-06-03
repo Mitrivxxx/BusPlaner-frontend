@@ -1,34 +1,37 @@
 <template>
-
-    <form @submit.prevent="submitForm" class="p-4 max-w-md mx-auto space-y-4">
-      <div class="container">
-        <h1>Dodaj autobus</h1>
+  <form @submit.prevent="submitForm" class="p-4 max-w-md mx-auto space-y-4">
+    <div class="container">
+      <h1 class="text-xl font-bold mb-4">Dodaj autobus</h1>
+      
       <div>
-        <label for="number" class="block font-semibold">Numer rejestracyjny:</label><br>
+        <label for="number" class="block font-semibold">Numer rejestracyjny:</label>
         <input
           id="number"
-          v-model="bus.number"
+          v-model="bus.rejestracja"
           type="text"
           class="w-full border rounded px-3 py-2"
+          maxlength="7"
           required
         />
       </div>
-  
+
       <div>
         <label for="brand" class="block font-semibold">Marka:</label><br>
         <select
           id="brand"
-          v-model="bus.brand"
+          v-model="bus.marka"
           class="w-full border rounded px-3 py-2"
           required
         >
           <option disabled value="">Wybierz markę</option>
-          <option>Mercedes-Benz</option>
+          <option>Mercedes</option>
           <option>MAN</option>
-          <option>Setra</option>
+          <option>Solaris</option>
+          <option>Volvo</option>
+          <option>Scania</option>
         </select>
       </div>
-  
+
       <div>
         <label for="model" class="block font-semibold">Model:</label><br>
         <input
@@ -39,32 +42,70 @@
           required
         />
       </div>
-  
+
       <button
         type="submit"
-        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        :disabled="loading"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
       >
-        Dodaj autobus
+        {{ loading ? 'Dodawanie...' : 'Dodaj autobus' }}
       </button>
-    </div>
-    </form>
 
-  </template>
-  
-  <script setup>
-  import { reactive } from 'vue'
-  
-  const bus = reactive({
-    number: '',
-    brand: '',
-    model: ''
-  })
-  
-  const submitForm = () => {
-    console.log('Dodano autobus:', bus)
-    // Możesz tu zamiast tego wysłać dane np. do API
+      <div v-if="error" class="text-red-500 mt-2">
+        {{ error }}
+      </div>
+      <div v-if="success" class="text-green-500 mt-2">
+        Autobus został pomyślnie dodany!
+      </div>
+    </div>
+  </form>
+</template>
+
+<script setup>
+import { reactive, ref } from 'vue'
+
+const bus = reactive({
+  rejestracja: '',
+  marka: '',
+  model: ''
+})
+
+const loading = ref(false)
+const error = ref('')
+const success = ref(false)
+
+const submitForm = async () => {
+  try {
+    loading.value = true
+    error.value = ''
+    success.value = false
+
+    const response = await $fetch('http://localhost:8000/transport/autobusy', {
+      method: 'POST',
+      body: JSON.stringify(bus),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    success.value = true
+    // Reset formularza po sukcesie
+    bus.rejestracja = ''
+    bus.marka = ''
+    bus.model = ''
+  } catch (err) {
+    if (err.data?.detail) {
+      error.value = err.data.detail
+    } else if (err.response?.status === 400) {
+      error.value = 'Autobus o podanej rejestracji już istnieje'
+    } else {
+      error.value = 'Wystąpił błąd podczas dodawania autobusu'
+    }
+  } finally {
+    loading.value = false
   }
-  </script>
+}
+</script>
   
   <style scoped>
   .container{

@@ -1,66 +1,45 @@
 <template>
-    <form @submit.prevent="submitForm">
-      <div class="container">
+  <form @submit.prevent="submitForm" class="p-4 max-w-md mx-auto space-y-4">
+    <div class="container">
+      <h1 class="text-xl font-bold mb-4">Dodaj Brygade: </h1>
+      
+      <div>
+        <label for="nazwa" class="block font-semibold">Nazwa:</label>
+        <input
+          id="nazwa"
+          v-model="brygada.nazwa"
+          type="text"
+          class="w-full border rounded px-3 py-2"
+          maxlength="7"
+          placeholder="np. ABC1234"
+          required
+        />
+      </div>
 
-        <h1>Dodaj linie</h1>
-      <div>
-        <label for="number" class="block font-semibold">Numer:</label><br>
-        <input
-          id="number"
-          v-model="linia.number"
-          type="text"
-          class="w-full border rounded px-3 py-2"
-          required
-        />
-      </div>
-      <div>
-        <label for="kierunek" class="block font-semibold">Kierunek:</label><br>
-        <input
-          id="kierunek"
-          v-model="linia.kierunek"
-          type="text"
-          class="w-full border rounded px-3 py-2"
-          required
-        />
-      </div>
-      <div>
-        <label for="opis" class="block font-semibold">Opis:</label><br>
-        <input
-          id="opis"
-          v-model="linia.opis"
-          type="text"
-          class="w-full border rounded px-3 py-2"
-          required
-        />
-      </div>
-  
-  
+      
       <button
         type="submit"
         :disabled="loading"
         class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
       >
-        {{ loading ? 'Dodawanie...' : 'Dodaj linie' }}
+        {{ loading ? 'Dodawanie...' : 'Dodaj brygade' }}
       </button>
 
       <div v-if="error" class="text-red-500 mt-2">
         {{ error }}
       </div>
       <div v-if="success" class="text-green-500 mt-2">
-        Przystanek został pomyślnie dodany!
+        Brygada został pomyślnie dodany!
       </div>
     </div>
-    </form>
+  </form>
+</template>
 
-  </template>
-  
 <script setup>
 import { reactive, ref } from 'vue'
 
-const linia = reactive({
-  numer: '',
-  kierunek: '',
-  opis: ''
+const brygada = reactive({
+  nazwa: ''
 })
 
 const loading = ref(false)
@@ -73,9 +52,9 @@ const submitForm = async () => {
     error.value = ''
     success.value = false
 
-    const response = await $fetch('http://localhost:8000/transport/linie', {
+    const response = await $fetch('http://localhost:8000/transport/brygady', {
       method: 'POST',
-      body: JSON.stringify(linia),
+      body: JSON.stringify(brygada),
       headers: {
         'Content-Type': 'application/json'
       }
@@ -83,9 +62,7 @@ const submitForm = async () => {
 
     success.value = true
     // Reset formularza po sukcesie
-    linia.numer = ''
-    linia.kierunek = ''
-    linia.opis = ''
+    brygada.nazwa = ''
   } catch (err) {
     if (err.data?.detail) {
       error.value = err.data.detail
@@ -129,15 +106,14 @@ input{
   font-size: 16px;                      /* Rozmiar czcionki */
 }
 select {
-    width: 85%;                          /* Szerokość pól formularza i przycisków */
+    width: 83%;                          /* Szerokość pól formularza i przycisków */
   padding: 10px;                        /* Wewnętrzne marginesy */
   border-radius: 8px;                   /* Zaokrąglone rogi */
   border: 1px solid #ccc;               /* Lekka ramka */
   font-size: 16px;                      /* Rozmiar czcionki */
 }
 button{
-width: 83%;    
-margin-left: 0%;                      /* Szerokość pól formularza i przycisków */
+width: 83%;                         /* Szerokość pól formularza i przycisków */
   padding: 10px;                        /* Wewnętrzne marginesy */
   border-radius: 8px;                   /* Zaokrąglone rogi */
   border: 1px solid #ccc;               /* Lekka ramka */

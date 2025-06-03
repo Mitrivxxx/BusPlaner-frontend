@@ -1,75 +1,134 @@
 <template>
-    <form @submit.prevent="submitForm" class="p-4 max-w-md mx-auto space-y-4">
-      <div class="container">
-        <h1>Dodaj przystanek</h1>
+  <form @submit.prevent="submitForm" class="p-4 max-w-md mx-auto space-y-4">
+    <div class="container">
+      <h1 class="text-xl font-bold mb-4">Dodaj przystanek</h1>
+      
       <div>
-        <label for="number" class="block font-semibold">Numer rejestracyjny:</label><br>
+        <label for="nazwa" class="block font-semibold">Nazwa:</label>
         <input
-          id="number"
-          v-model="bus.number"
+          id="nazwa"
+          v-model="przystanek.nazwa"
           type="text"
           class="w-full border rounded px-3 py-2"
           required
+          maxlength="50"
+          placeholder="np. Plac Centralny"
         />
       </div>
+
       <div>
-        <label for="longi" class="block font-semibold">Longi:</label><br>
+        <label for="longi" class="block font-semibold">Długość geograficzna:</label>
         <input
           id="longi"
-          v-model="bus.longi"
-          type="text"
+          v-model="przystanek.longi"
+          type="number"
+          step="0.000001"
           class="w-full border rounded px-3 py-2"
           required
+          placeholder="np. 50.061389"
         />
       </div>
+
       <div>
-        <label for="latki" class="block font-semibold">Latki:</label><br>
+        <label for="lati" class="block font-semibold">Szerokość geograficzna:</label>
         <input
-          id="latki"
-          v-model="bus.latki"
-          type="text"
+          id="lati"
+          v-model="przystanek.lati"
+          type="number"
+          step="0.000001"
           class="w-full border rounded px-3 py-2"
           required
+          placeholder="np. 19.938333"
         />
       </div>
-  
-     
-  
+
       <div>
-        <label for="ulica" class="block font-semibold">Ulica:</label><br>
+        <label for="ulica" class="block font-semibold">Ulica:</label>
         <input
           id="ulica"
-          v-model="bus.ulica"
+          v-model="przystanek.ulica"
           type="text"
           class="w-full border rounded px-3 py-2"
           required
+          maxlength="50"
+          placeholder="np. Aleja Pokoju"
         />
       </div>
-  
+
       <button
         type="submit"
-        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        :disabled="loading"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
       >
-        Dodaj przystanek
+        {{ loading ? 'Dodawanie...' : 'Dodaj przystanek' }}
       </button>
+
+      <div v-if="error" class="text-red-500 mt-2">
+        {{ error }}
       </div>
-    </form>
-  </template>
-  
-  <script setup>
-  import { reactive } from 'vue'
-  
-  const bus = reactive({
-    number: '',
-    brand: '',
-    model: ''
-  })
-  
-  const submitForm = () => {
-    console.log('Dodano autobus:', bus)
-    // Możesz tu zamiast tego wysłać dane np. do API
+      <div v-if="success" class="text-green-500 mt-2">
+        Przystanek został pomyślnie dodany!
+      </div>
+    </div>
+  </form>
+</template>
+
+<script setup>
+import { reactive, ref } from 'vue'
+
+const przystanek = reactive({
+  nazwa: '',
+  longi: '',
+  lati: '',  // Zmienione z latki na lati
+  ulica: ''
+})
+
+const loading = ref(false)
+const error = ref('')
+const success = ref(false)
+
+const submitForm = async () => {
+  try {
+    loading.value = true
+    error.value = ''
+    success.value = false
+
+    // Konwersja na liczby
+    const daneDoWyslania = {
+      ...przystanek,
+      longi: parseFloat(przystanek.longi),
+      lati: parseFloat(przystanek.lati)
+    }
+
+    const response = await $fetch('http://localhost:8000/transport/przystanki', {
+      method: 'POST',
+      body: JSON.stringify(daneDoWyslania),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    success.value = true
+    // Reset formularza po sukcesie
+    przystanek.nazwa = ''
+    przystanek.longi = ''
+    przystanek.lati = ''
+    przystanek.ulica = ''
+    
+  } catch (err) {
+    if (err.data?.detail) {
+      error.value = err.data.detail
+    } else if (err.response?.status === 400) {
+      error.value = 'Przystanek o tej nazwie już istnieje'
+    } else {
+      error.value = 'Wystąpił błąd podczas dodawania przystanku'
+      console.error('Szczegóły błędu:', err)
+    }
+  } finally {
+    loading.value = false
   }
-  </script>
+}
+</script>
   
   <style scoped>
   .container{

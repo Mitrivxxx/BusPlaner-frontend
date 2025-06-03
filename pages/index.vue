@@ -64,10 +64,11 @@
   
   aside {
     background-color: var(--moj_szary);
-    height: auto;
     width: 30%;
-    height: 600px;
+    height: 150%;
     text-align: center;
     align-items: center;
+    border-radius: 20px;
+    padding-bottom: 2%;
   }
   </style>
